@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Fit Guide</title>
+<meta name="description" content="Find your size, right on the product page: a size advisor for clothing stores with a camera fit guide. Runs in the shopper's browser." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect x='1' y='9' width='26' height='10' rx='2' fill='%23f2c230'/%3E%3Cpath d='M5 9v4M9 9v6M13 9v4M17 9v6M21 9v4' stroke='%232a2306' stroke-width='1.4'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" />
+<style>
+  /* Layout: a short product intro, a measuring-tape rule, then a sample store framed like a website; how-it-works below.
+     Tokens: page palette (light/dark) + tape yellow as the one accent; the sample store keeps its own light palette,
+     restyled by the brand presets. */
+  :root {
+    --paper: #f7f7f4;
+    --panel: #ffffff;
+    --ink: #16181b;
+    --muted: #63666c;
+    --line: #e2e1da;
+    --tape: #f2c230;
+    --tape-ink: #2a2306;
+    --display: "Space Grotesk", "Inter", system-ui, sans-serif;
+    --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --paper: #121315; --panel: #1b1d20; --ink: #ececea; --muted: #a2a5ab; --line: #2c2f33; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --paper: #121315; --panel: #1b1d20; --ink: #ececea; --muted: #a2a5ab; --line: #2c2f33; color-scheme: dark; }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 var(--body); }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid #2f6fdb; outline-offset: 2px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+  header.top { padding-block: 18px; }
+  header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .mark { display: flex; align-items: center; gap: 10px; font: 700 19px/1 var(--display); letter-spacing: -0.01em; }
+  .mark svg { flex: none; }
+  .pill { font: 600 12px/1 var(--body); text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 10px; border-radius: 999px; background: var(--tape); color: var(--tape-ink); }
+  .units { display: flex; gap: 6px; align-items: center; font-size: 14px; color: var(--muted); }
+  .units button { font: 500 14px var(--body); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+  .units button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .intro { padding-block: 32px 28px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 40px; align-items: center; }
+  .intro h1 { font: 700 clamp(34px, 5vw, 54px)/1.04 var(--display); letter-spacing: -0.025em; margin: 0 0 18px; text-wrap: balance; }
+  .intro p.lede { font-size: 18px; color: var(--muted); max-width: 34em; margin: 0 0 22px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; padding: 0; list-style: none; }
+  .facts li { font-size: 14px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); }
+  .cta { display: inline-flex; align-items: center; gap: 8px; font: 600 16px var(--body); padding: 14px 22px; border-radius: 999px; background: var(--ink); color: var(--paper); text-decoration: none; }
+  .figure { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+  .figure svg { display: block; width: 100%; height: auto; max-width: 420px; margin: 0 auto; }
+  .figure .cap { font-size: 13px; color: var(--muted); text-align: center; margin-top: 8px; }
+
+  /* A measuring tape: cm ticks, a longer tick every 5, numbers every 10. */
+  .tape { height: 34px; background-color: var(--tape); color: var(--tape-ink); position: relative; overflow: hidden;
+    background-image:
+      repeating-linear-gradient(90deg, var(--tape-ink) 0 1px, transparent 1px 10px),
+      repeating-linear-gradient(90deg, var(--tape-ink) 0 1.5px, transparent 1.5px 50px);
+    background-size: 100% 9px, 100% 15px; background-repeat: no-repeat; background-position: 0 0, 0 0; }
+  .tape span { position: absolute; top: 15px; font: 600 11px/1 var(--body); transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+
+  section.store { padding-block: 40px 20px; }
+  .section-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; }
+  .section-head h2 { font: 700 28px/1.15 var(--display); letter-spacing: -0.015em; margin: 0; }
+  .section-head p { margin: 4px 0 0; color: var(--muted); max-width: 40em; }
+  .styles { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .styles span { font-size: 14px; color: var(--muted); margin-right: 4px; }
+  .styles button { font: 500 14px var(--body); padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+  .styles button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* The sample store, framed like a website. Always light: it's somebody's shop. */
+  .browser { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 18px 50px rgba(10, 12, 16, 0.12); }
+  .bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #ecebe6; color: #55585e; font-size: 13px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: #d4d2ca; display: block; }
+  .url { flex: 1; min-width: 0; padding: 5px 12px; border-radius: 999px; background: #f8f7f3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .shop { --s-bg: #ffffff; --s-ink: #141414; --s-muted: #6b6b6b; --s-line: #e6e6e6; --s-accent: #141414; --s-accent-ink: #ffffff; --s-radius: 0px; --s-tile-radius: 0px; --s-font: "Inter", system-ui, sans-serif; --s-display: "Inter", system-ui, sans-serif; --s-tile: #f2f2f0;
+    background: var(--s-bg); color: var(--s-ink); font-family: var(--s-font); color-scheme: light; }
+  .shop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 22px; border-bottom: 1px solid var(--s-line); }
+  .shop-name { font: 700 20px/1 var(--s-display); letter-spacing: 0.02em; }
+  .shop-nav { display: flex; gap: 18px; font-size: 14px; color: var(--s-muted); }
+  .bag { font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 22px; padding: 22px; }
+  .product { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .tile { aspect-ratio: 4 / 5; background: var(--s-tile); border-radius: var(--s-tile-radius); display: flex; align-items: center; justify-content: center; position: relative; }
+  .tile svg { width: 66%; height: auto; }
+  .tag { position: absolute; top: 12px; left: 12px; font-size: 12px; padding: 4px 9px; background: var(--s-bg); border-radius: var(--s-radius); }
+  .p-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .p-name { font: 600 18px/1.25 var(--s-display); margin: 0; }
+  .p-price { font-variant-numeric: tabular-nums; }
+  .p-meta { font-size: 13px; color: var(--s-muted); margin: -6px 0 0; }
+  .swatches { display: flex; gap: 8px; }
+  .swatches button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--s-bg); box-shadow: 0 0 0 1px var(--s-line); cursor: pointer; padding: 0; }
+  .swatches button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--s-ink); }
+  .sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sizes button { min-width: 44px; height: 38px; padding: 0 10px; border: 1px solid var(--s-line); border-radius: var(--s-radius); background: var(--s-bg); color: var(--s-ink); font: 500 14px var(--s-font); cursor: pointer; }
+  .sizes button[aria-pressed="true"] { background: var(--s-ink); color: var(--s-bg); border-color: var(--s-ink); }
+  .row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+  .add { flex: 1 1 140px; min-height: 44px; border: 1px solid var(--s-accent); background: var(--s-accent); color: var(--s-accent-ink); border-radius: var(--s-radius); font: 600 15px var(--s-font); cursor: pointer; }
+  .add:disabled { opacity: 0.45; cursor: not-allowed; }
+  .fit-guide-button { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--s-ink); font: 500 14px var(--s-font); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+  .fit-guide-button::before { content: ""; width: 16px; height: 10px; flex: none; background: repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 4px) bottom / 100% 5px no-repeat, linear-gradient(currentColor, currentColor) bottom / 100% 1px no-repeat; }
+  .note { font-size: 13px; color: var(--s-muted); padding: 0 22px 22px; }
+
+  section.how { padding-block: 44px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .card h3 { font: 600 19px/1.25 var(--display); margin: 0; }
+  .card p { margin: 0; color: var(--muted); }
+  .card .k { font: 600 12px/1 var(--body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .tips { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 24px; padding: 0; list-style: none; color: var(--muted); font-size: 15px; }
+  .tips b { color: var(--ink); font-weight: 600; }
+
+  footer { border-top: 1px solid var(--line); padding-block: 22px 36px; color: var(--muted); font-size: 14px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: 999px; font-size: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); z-index: 50; }
+
+  @media (max-width: 820px) {
+    .intro { grid-template-columns: 1fr; gap: 26px; padding-block: 18px 24px; }
+    .shop-nav { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <div class="mark">
+        <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="9" width="26" height="10" rx="2" fill="#f2c230"/><path d="M5 9v4M9 9v6M13 9v4M17 9v6M21 9v4" stroke="#2a2306" stroke-width="1.4"/></svg>
+        Fit Guide <span class="pill">Demo</span>
+      </div>
+      <div class="units" role="group" aria-label="Units">
+        <span>Units</span>
+        <button type="button" data-units="cm" aria-pressed="true">cm</button>
+        <button type="button" data-units="in" aria-pressed="false">in</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap intro">
+      <div>
+        <h1>Find your size, right on the product page.</h1>
+        <p class="lede">A size advisor for clothing stores. Shoppers enter their height and chest or hips and get their size from the store's own size chart. The camera then shows how each size would sit on them, with no tape measure needed.</p>
+        <ul class="facts">
+          <li>Runs in the shopper's browser</li>
+          <li>Nothing is uploaded</li>
+          <li>No AI costs per use</li>
+          <li>Matches the store's brand</li>
+        </ul>
+        <a class="cta" href="#store">Try it in the sample store <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="figure">
+        <svg viewBox="0 0 320 300" role="img" aria-label="Sketch of the camera fit guide: a body with a solid outline for the best size and a dashed outline for a bigger size">
+          <rect width="320" height="300" rx="14" fill="#23262b"/>
+          <g fill="#3a3e45">
+            <circle cx="160" cy="58" r="26"/>
+            <rect x="148" y="80" width="24" height="18" rx="6"/>
+            <path d="M112 104 Q160 92 208 104 L214 196 Q160 206 106 196 Z"/>
+            <path d="M112 106 L86 186 L98 190 L122 128 Z"/>
+            <path d="M208 106 L234 186 L222 190 L198 128 Z"/>
+            <path d="M118 196 L126 292 L152 292 L158 206 Z"/>
+            <path d="M202 196 L194 292 L168 292 L162 206 Z"/>
+          </g>
+          <path d="M138 94 Q160 108 182 94 L214 104 L230 150 L210 156 L204 134 L204 214 L116 214 L116 134 L110 156 L90 150 L106 104 Z" fill="rgba(244,242,238,0.12)" stroke="#f4f2ee" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M136 90 Q160 106 184 90 L224 102 L244 156 L218 164 L212 138 L212 228 L108 228 L108 138 L102 164 L76 156 L96 102 Z" fill="none" stroke="#f2a65a" stroke-width="3" stroke-dasharray="10 7" stroke-linejoin="round"/>
+          <g font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">
+            <rect x="16" y="232" width="92" height="24" rx="12" fill="#f4f2ee"/><text x="62" y="248" text-anchor="middle" fill="#0a1a2a">M · best fit</text>
+            <rect x="170" y="238" width="136" height="24" rx="12" fill="#f2a65a"/><text x="238" y="254" text-anchor="middle" fill="#0a1a2a">XL: +12 cm chest</text>
+          </g>
+        </svg>
+        <div class="cap">The camera fit guide: the solid line is your best size, the dashed line the size you picked.</div>
+      </div>
+    </div>
+
+    <div class="tape" aria-hidden="true" id="tape"></div>
+
+    <section class="store" id="store">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Sample store</h2>
+            <p>A made-up shop with made-up size charts. Pick a product and use <b>Find your size</b>.</p>
+          </div>
+          <div class="styles" role="group" aria-label="Store style">
+            <span>Store style</span>
+            <button type="button" data-preset="minimal" aria-pressed="true">Minimal</button>
+            <button type="button" data-preset="classic" aria-pressed="false">Classic</button>
+            <button type="button" data-preset="bold" aria-pressed="false">Bold</button>
+          </div>
+        </div>
+        <div class="browser">
+          <div class="bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">fernway.example/collections/essentials</div></div>
+          <div class="shop" id="shop">
+            <div class="shop-head">
+              <div class="shop-name" id="shop-name">FERNWAY</div>
+              <nav class="shop-nav" aria-label="Sample store menu"><span>New in</span><span>Tops</span><span>Bottoms</span><span>About</span></nav>
+              <div class="bag" id="bag">Bag (0)</div>
+            </div>
+            <div class="grid" id="grid"></div>
+            <p class="note">Sample products and size charts are made up for this demo. The style buttons above restyle this store and the size window together, the way a real store's colours, fonts and corners would.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how">
+      <div class="wrap">
+        <div class="section-head"><div><h2>What the shopper gets</h2></div></div>
+        <div class="cards">
+          <div class="card">
+            <span class="k">Size advice</span>
+            <h3>Their size, with the reason</h3>
+            <p>Height and chest (or hips) in cm or inches give the best size from the store's chart, with how much room each size leaves and why one is best.</p>
+          </div>
+          <div class="card">
+            <span class="k">Camera fit guide</span>
+            <h3>See the sizes on yourself</h3>
+            <p>Outlines of the best size and the one they picked, drawn to scale on the live camera picture or a photo, with the difference in cm.</p>
+          </div>
+          <div class="card">
+            <span class="k">Measure me</span>
+            <h3>No tape measure needed</h3>
+            <p>A two-step scan (facing the camera, then sideways) estimates chest, waist and hips from the body's outline. Most accurate standing 2–3 m back.</p>
+          </div>
+        </div>
+        <ul class="tips">
+          <li><b>Camera:</b> allow access when asked. On a laptop, stand back so you're in view down to your hips.</li>
+          <li><b>Phones:</b> works in Safari and Chrome. Prop the phone up and step back.</li>
+          <li><b>Privacy:</b> the camera picture never leaves your device, and measurements are remembered only in your browser.</li>
+          <li><b>First use:</b> the body-tracking models (about 10 MB) download once, then load from the browser's cache.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Fit Guide demo · built on MediaPipe (Apache-2.0) · sample store and size charts are made up</span>
+      <span>Coming soon as a Shopify app</span>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="./fit-guide.js"></script>
+  <script>
+    (function () {
+      var STORE_KEY = "fitguide-demo";
+      var products = [
+        {
+          id: "tee", name: "Everyday Tee", price: "€35", meta: "Organic cotton · relaxed fit", tag: "Relaxed fit",
+          colours: [["Ink", "#2b2f36"], ["Sand", "#d8c7a8"], ["Sage", "#9fb59a"]],
+          art: "tee",
+          chart: { type: "top", fit: "relaxed", sizes: [
+            { name: "XS", chest: 100, length: 66 }, { name: "S", chest: 106, length: 68 }, { name: "M", chest: 112, length: 70 },
+            { name: "L", chest: 118, length: 72 }, { name: "XL", chest: 124, length: 74 } ] }
+        },
+        {
+          id: "shirt", name: "Oxford Shirt", price: "€69", meta: "Brushed oxford cotton · regular fit", tag: "Regular fit",
+          colours: [["White", "#f3f3ef"], ["Sky", "#a9c3df"], ["Navy", "#2c3e5c"]],
+          art: "shirt",
+          chart: { type: "top", fit: "regular", sizes: [
+            { name: "S", bodyChest: [88, 94] }, { name: "M", bodyChest: [94, 100] }, { name: "L", bodyChest: [100, 106] },
+            { name: "XL", bodyChest: [106, 112] }, { name: "XXL", bodyChest: [112, 120] } ] }
+        },
+        {
+          id: "leggings", name: "Studio Leggings", price: "€59", meta: "Recycled stretch · high rise", tag: "Second skin",
+          colours: [["Black", "#1e1e20"], ["Plum", "#6a3e5c"], ["Olive", "#6b6d47"]],
+          art: "leggings",
+          chart: { type: "bottom", sizes: [
+            { name: "XS", bodyHips: [82, 88], inseam: 66 }, { name: "S", bodyHips: [88, 94], inseam: 67 }, { name: "M", bodyHips: [94, 100], inseam: 68 },
+            { name: "L", bodyHips: [100, 106], inseam: 69 }, { name: "XL", bodyHips: [106, 112], inseam: 70 } ] }
+        }
+      ];
+
+      // Three store looks. Each restyles the sample store and passes the same look to the size window.
+      var presets = {
+        minimal: { name: "FERNWAY", store: { "--s-bg": "#ffffff", "--s-ink": "#141414", "--s-muted": "#6b6b6b", "--s-line": "#e6e6e6", "--s-accent": "#141414", "--s-accent-ink": "#ffffff", "--s-radius": "0px", "--s-tile-radius": "0px", "--s-font": "\"Inter\", system-ui, sans-serif", "--s-display": "\"Inter\", system-ui, sans-serif", "--s-tile": "#f2f2f0" },
+          widget: { accent: "#141414", accentText: "#ffffff", radius: "0px", font: "\"Inter\", system-ui, sans-serif", background: "#ffffff", surface: "#f3f3f1" } },
+        classic: { name: "Fernway & Co.", store: { "--s-bg": "#fbf9f4", "--s-ink": "#1f2a24", "--s-muted": "#5f6b62", "--s-line": "#e3ded2", "--s-accent": "#2f4a3a", "--s-accent-ink": "#fbf9f4", "--s-radius": "10px", "--s-tile-radius": "12px", "--s-font": "\"Libre Baskerville\", Georgia, serif", "--s-display": "\"Libre Baskerville\", Georgia, serif", "--s-tile": "#efebe1" },
+          widget: { accent: "#2f4a3a", accentText: "#fbf9f4", radius: "10px", font: "\"Libre Baskerville\", Georgia, serif", background: "#fbf9f4", surface: "#efebe1", text: "#1f2a24", line: "#e3ded2" } },
+        bold: { name: "fernway", store: { "--s-bg": "#ffffff", "--s-ink": "#101322", "--s-muted": "#5a5f73", "--s-line": "#dfe2ee", "--s-accent": "#2b59ff", "--s-accent-ink": "#ffffff", "--s-radius": "999px", "--s-tile-radius": "24px", "--s-font": "\"Space Grotesk\", system-ui, sans-serif", "--s-display": "\"Space Grotesk\", system-ui, sans-serif", "--s-tile": "#eef1ff" },
+          widget: { accent: "#2b59ff", accentText: "#ffffff", radius: "999px", font: "\"Space Grotesk\", system-ui, sans-serif", surface: "#eef1ff", line: "#dfe2ee", text: "#101322" } }
+      };
+
+      var state = load();
+      function load() {
+        var s = { preset: "minimal", units: "cm", picks: {}, bag: 0 };
+        try { var saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); if (saved && typeof saved === "object") { s.preset = presets[saved.preset] ? saved.preset : s.preset; s.units = saved.units === "in" ? "in" : "cm"; } } catch (e) {}
+        products.forEach(function (p) { s.picks[p.id] = { size: "", colour: 0 }; });
+        return s;
+      }
+      function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify({ preset: state.preset, units: state.units })); } catch (e) {} }
+
+      function art(kind, fill) {
+        var stroke = "rgba(0,0,0,0.28)";
+        if (kind === "tee") return '<svg viewBox="0 0 200 200" aria-hidden="true"><path d="M70 22 Q100 42 130 22 L170 34 L196 84 L166 96 L160 72 L160 186 L40 186 L40 72 L34 96 L4 84 L30 34 Z" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2" stroke-linejoin="round"/><path d="M70 22 Q100 42 130 22" fill="none" stroke="' + stroke + '" stroke-width="4"/></svg>';
+        if (kind === "shirt") return '<svg viewBox="0 0 200 210" aria-hidden="true"><path d="M74 18 L100 34 L126 18 L166 28 L196 176 L176 182 L158 76 L158 196 L42 196 L42 76 L24 182 L4 176 L34 28 Z" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2" stroke-linejoin="round"/><path d="M74 18 L92 50 L100 34 M126 18 L108 50 L100 34" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2" stroke-linejoin="round"/><path d="M100 36 V196" stroke="' + stroke + '" stroke-width="2"/><g fill="' + stroke + '"><circle cx="106" cy="66" r="2.6"/><circle cx="106" cy="98" r="2.6"/><circle cx="106" cy="130" r="2.6"/><circle cx="106" cy="162" r="2.6"/></g></svg>';
+        return '<svg viewBox="0 0 200 210" aria-hidden="true"><rect x="52" y="8" width="96" height="22" rx="4" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2"/><path d="M52 30 L148 30 L154 70 L134 202 L110 202 L100 92 L90 202 L66 202 L46 70 Z" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2" stroke-linejoin="round"/><path d="M100 30 V92" stroke="' + stroke + '" stroke-width="1.5"/></svg>';
+      }
+
+      var grid = document.getElementById("grid");
+      function renderProducts() {
+        grid.innerHTML = "";
+        products.forEach(function (p) {
+          var pick = state.picks[p.id];
+          var el = document.createElement("article");
+          el.className = "product";
+          el.dataset.product = p.id;
+          el.innerHTML =
+            '<div class="tile"><span class="tag">' + p.tag + '</span>' + art(p.art, p.colours[pick.colour][1]) + '</div>' +
+            '<div class="p-head"><h3 class="p-name">' + p.name + '</h3><span class="p-price">' + p.price + '</span></div>' +
+            '<p class="p-meta">' + p.meta + ' · ' + p.colours[pick.colour][0] + '</p>' +
+            '<div class="swatches" role="group" aria-label="Colour"></div>' +
+            '<div class="sizes" role="group" aria-label="Size"></div>' +
+            '<div class="row"><button type="button" class="add">Add to bag</button><span class="slot"></span></div>';
+          var sw = el.querySelector(".swatches");
+          p.colours.forEach(function (c, i) {
+            var b = document.createElement("button");
+            b.type = "button"; b.style.background = c[1]; b.setAttribute("aria-label", c[0]); b.setAttribute("aria-pressed", String(i === pick.colour));
+            b.onclick = function () { pick.colour = i; renderProducts(); };
+            sw.appendChild(b);
+          });
+          var sz = el.querySelector(".sizes");
+          p.chart.sizes.forEach(function (s) {
+            var b = document.createElement("button");
+            b.type = "button"; b.textContent = s.name; b.setAttribute("aria-pressed", String(s.name === pick.size));
+            b.onclick = function () { pick.size = s.name; renderProducts(); };
+            sz.appendChild(b);
+          });
+          var add = el.querySelector(".add");
+          add.disabled = !pick.size;
+          add.textContent = pick.size ? "Add to bag · " + pick.size : "Select a size";
+          add.onclick = function () { state.bag += 1; document.getElementById("bag").textContent = "Bag (" + state.bag + ")"; toast(p.name + ", size " + pick.size + ", added to the bag (demo)"); };
+          grid.appendChild(el);
+          // The size window gets this product's chart, the current pick and the store's look each time it opens.
+          FitGuide.button(el.querySelector(".slot"), function () {
+            return {
+              product: { name: p.name },
+              chart: p.chart,
+              selectedSize: pick.size,
+              units: state.units,
+              theme: presets[state.preset].widget,
+              onChoose: function (size) { pick.size = size; renderProducts(); toast("Size " + size + " selected for " + p.name); }
+            };
+          });
+        });
+      }
+
+      function applyPreset() {
+        var pr = presets[state.preset];
+        var shop = document.getElementById("shop");
+        Object.keys(pr.store).forEach(function (k) { shop.style.setProperty(k, pr.store[k]); });
+        document.getElementById("shop-name").textContent = pr.name;
+        document.querySelectorAll("[data-preset]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.preset === state.preset)); });
+      }
+      document.querySelectorAll("[data-preset]").forEach(function (b) {
+        b.onclick = function () { state.preset = b.dataset.preset; save(); applyPreset(); };
+      });
+      function applyUnits() { document.querySelectorAll("[data-units]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.units === state.units)); }); }
+      document.querySelectorAll("[data-units]").forEach(function (b) {
+        b.onclick = function () { state.units = b.dataset.units; save(); applyUnits(); };
+      });
+
+      var toastTimer;
+      function toast(msg) {
+        var t = document.getElementById("toast");
+        t.textContent = msg; t.hidden = false;
+        clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, 2600);
+      }
+
+      // Numbers on the tape: every 10 cm (every 100 px on screen).
+      (function () {
+        var tape = document.getElementById("tape");
+        var n = Math.ceil(window.screen.width / 100) + 2;
+        for (var i = 1; i < n; i++) { var s = document.createElement("span"); s.style.left = (i * 100) + "px"; s.textContent = i * 10; tape.appendChild(s); }
+      })();
+
+      if (!window.FitGuide) {
+        grid.innerHTML = '<p style="padding:22px">The Fit Guide script did not load. Reload the page to try again.</p>';
+        return;
+      }
+      applyPreset(); applyUnits(); renderProducts();
+    })();
+  </script>
+</body>
+</html>
