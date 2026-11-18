@@ -142,6 +142,8 @@
   .color span { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--ink); }
   .check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--ink); grid-column: 1 / -1; }
   .hint-text { grid-column: 1 / -1; font-size: 13px; color: var(--muted); margin: 0; }
+  .preview-note { grid-column: 1 / -1; font-size: 13px; line-height: 1.45; color: var(--ink); margin: 0; padding: 8px 10px; border: 1px dashed var(--muted); border-radius: 8px; background: var(--paper); }
+  .preview-note b { font-weight: 600; }
   .tabs { display: flex; gap: 6px; flex-wrap: wrap; grid-column: 1 / -1; }
   .tabs button { font: 500 13px var(--body); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
   .tabs button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
@@ -551,6 +553,7 @@
         var st = S.store;
 
         section("Store", open[0] !== undefined ? open[0] : true, function (f) {
+          f.appendChild(el("p", { "class": "preview-note", id: "note-store" }, "<b>Preview only.</b> On Shopify, your store's look comes from your theme. The app never changes it."));
           textField(f, "Store name", st.name, function (v) { st.name = v; changed(); }, true, "c-store-name");
           selectField(f, "Body font", fontOptions, st.font, function (v) { st.font = v; changed(); }, "c-store-font");
           selectField(f, "Heading font", fontOptions, st.headingFont, function (v) { st.headingFont = v; changed(); }, "c-store-heading");
@@ -573,6 +576,7 @@
             tabs.appendChild(b);
           });
           f.appendChild(tabs);
+          f.appendChild(el("p", { "class": "preview-note", id: "note-products" }, "<b>Preview only:</b> name, price, description, label and photo. On Shopify these come from your products. The size chart and cut below are real app settings."));
           var p = S.products.filter(function (x) { return x.id === editing; })[0];
           textField(f, "Name", p.name, function (v) { p.name = v; changed(); }, false, "c-p-name");
           textField(f, "Price", p.price, function (v) { p.price = v; changed(); }, false, "c-p-price");
