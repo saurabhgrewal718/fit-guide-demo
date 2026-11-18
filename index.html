@@ -8,28 +8,31 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect x='1' y='9' width='26' height='10' rx='2' fill='%23f2c230'/%3E%3Cpath d='M5 9v4M9 9v6M13 9v4M17 9v6M21 9v4' stroke='%232a2306' stroke-width='1.4'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Playfair+Display:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" />
 <style>
-  /* Layout: a short product intro, a measuring-tape rule, then a sample store framed like a website; how-it-works below.
-     Tokens: page palette (light/dark) + tape yellow as the one accent; the sample store keeps its own light palette,
-     restyled by the brand presets. */
+  /* Layout: a short product intro, a measuring-tape rule, a sample store framed like a website with a Customize
+     panel that edits it live, then what the shopper gets. Page palette (light/dark) with tape yellow as the one
+     accent; the sample store has its own palette, set by presets or the Customize panel. */
   :root {
     --paper: #f7f7f4;
     --panel: #ffffff;
     --ink: #16181b;
     --muted: #63666c;
     --line: #e2e1da;
+    --field: #ffffff;
     --tape: #f2c230;
     --tape-ink: #2a2306;
+    --danger: #b42318;
     --display: "Space Grotesk", "Inter", system-ui, sans-serif;
     --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) { --paper: #121315; --panel: #1b1d20; --ink: #ececea; --muted: #a2a5ab; --line: #2c2f33; color-scheme: dark; }
+    :root:not([data-theme="light"]) { --paper: #121315; --panel: #1b1d20; --ink: #ececea; --muted: #a2a5ab; --line: #2f3236; --field: #232528; --danger: #ff8a7a; color-scheme: dark; }
   }
-  :root[data-theme="dark"] { --paper: #121315; --panel: #1b1d20; --ink: #ececea; --muted: #a2a5ab; --line: #2c2f33; color-scheme: dark; }
+  :root[data-theme="dark"] { --paper: #121315; --panel: #1b1d20; --ink: #ececea; --muted: #a2a5ab; --line: #2f3236; --field: #232528; --danger: #ff8a7a; color-scheme: dark; }
 
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 var(--body); }
   a { color: inherit; }
@@ -41,9 +44,9 @@
   .mark { display: flex; align-items: center; gap: 10px; font: 700 19px/1 var(--display); letter-spacing: -0.01em; }
   .mark svg { flex: none; }
   .pill { font: 600 12px/1 var(--body); text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 10px; border-radius: 999px; background: var(--tape); color: var(--tape-ink); }
-  .units { display: flex; gap: 6px; align-items: center; font-size: 14px; color: var(--muted); }
-  .units button { font: 500 14px var(--body); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
-  .units button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .seg { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+  .seg button { font: 500 14px var(--body); padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
   .intro { padding-block: 32px 28px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 40px; align-items: center; }
   .intro h1 { font: 700 clamp(34px, 5vw, 54px)/1.04 var(--display); letter-spacing: -0.025em; margin: 0 0 18px; text-wrap: balance; }
@@ -57,41 +60,39 @@
 
   /* A measuring tape: cm ticks, a longer tick every 5, numbers every 10. */
   .tape { height: 34px; background-color: var(--tape); color: var(--tape-ink); position: relative; overflow: hidden;
-    background-image:
-      repeating-linear-gradient(90deg, var(--tape-ink) 0 1px, transparent 1px 10px),
-      repeating-linear-gradient(90deg, var(--tape-ink) 0 1.5px, transparent 1.5px 50px);
-    background-size: 100% 9px, 100% 15px; background-repeat: no-repeat; background-position: 0 0, 0 0; }
+    background-image: repeating-linear-gradient(90deg, var(--tape-ink) 0 1px, transparent 1px 10px), repeating-linear-gradient(90deg, var(--tape-ink) 0 1.5px, transparent 1.5px 50px);
+    background-size: 100% 9px, 100% 15px; background-repeat: no-repeat; }
   .tape span { position: absolute; top: 15px; font: 600 11px/1 var(--body); transform: translateX(-50%); font-variant-numeric: tabular-nums; }
 
   section.store { padding-block: 40px 20px; }
   .section-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; }
   .section-head h2 { font: 700 28px/1.15 var(--display); letter-spacing: -0.015em; margin: 0; }
   .section-head p { margin: 4px 0 0; color: var(--muted); max-width: 40em; }
-  .styles { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .styles span { font-size: 14px; color: var(--muted); margin-right: 4px; }
-  .styles button { font: 500 14px var(--body); padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
-  .styles button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .head-tools { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+  .customize { display: inline-flex; align-items: center; gap: 8px; font: 600 14px var(--body); padding: 9px 16px; border-radius: 999px; border: 0; background: var(--tape); color: var(--tape-ink); cursor: pointer; }
 
-  /* The sample store, framed like a website. Always light: it's somebody's shop. */
+  /* The sample store, framed like a website. Always light by default: it's somebody's shop. */
   .browser { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 18px 50px rgba(10, 12, 16, 0.12); }
   .bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #ecebe6; color: #55585e; font-size: 13px; }
   .dots { display: flex; gap: 6px; }
   .dots i { width: 10px; height: 10px; border-radius: 50%; background: #d4d2ca; display: block; }
   .url { flex: 1; min-width: 0; padding: 5px 12px; border-radius: 999px; background: #f8f7f3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .shop { --s-bg: #ffffff; --s-ink: #141414; --s-muted: #6b6b6b; --s-line: #e6e6e6; --s-accent: #141414; --s-accent-ink: #ffffff; --s-radius: 0px; --s-tile-radius: 0px; --s-font: "Inter", system-ui, sans-serif; --s-display: "Inter", system-ui, sans-serif; --s-tile: #f2f2f0;
+  .shop { --s-bg: #ffffff; --s-ink: #141414; --s-accent: #141414; --s-accent-ink: #ffffff; --s-tile: #f2f2f0; --s-radius: 0px; --s-tile-radius: 0px; --s-font: "Inter", system-ui, sans-serif; --s-display: "Inter", system-ui, sans-serif;
+    --s-muted: color-mix(in srgb, var(--s-ink) 62%, var(--s-bg)); --s-line: color-mix(in srgb, var(--s-ink) 13%, var(--s-bg));
     background: var(--s-bg); color: var(--s-ink); font-family: var(--s-font); color-scheme: light; }
   .shop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 22px; border-bottom: 1px solid var(--s-line); }
-  .shop-name { font: 700 20px/1 var(--s-display); letter-spacing: 0.02em; }
+  .shop-name { font: 700 20px/1.1 var(--s-display); letter-spacing: 0.02em; min-width: 0; overflow-wrap: anywhere; }
   .shop-nav { display: flex; gap: 18px; font-size: 14px; color: var(--s-muted); }
-  .bag { font-size: 14px; }
+  .bag { font-size: 14px; white-space: nowrap; }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 22px; padding: 22px; }
   .product { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-  .tile { aspect-ratio: 4 / 5; background: var(--s-tile); border-radius: var(--s-tile-radius); display: flex; align-items: center; justify-content: center; position: relative; }
+  .tile { aspect-ratio: 4 / 5; max-width: 100%; background: var(--s-tile); border-radius: var(--s-tile-radius); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
   .tile svg { width: 66%; height: auto; }
+  .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tag { position: absolute; top: 12px; left: 12px; font-size: 12px; padding: 4px 9px; background: var(--s-bg); border-radius: var(--s-radius); }
   .p-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
-  .p-name { font: 600 18px/1.25 var(--s-display); margin: 0; }
-  .p-price { font-variant-numeric: tabular-nums; }
+  .p-name { font: 600 18px/1.25 var(--s-display); margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  .p-price { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .p-meta { font-size: 13px; color: var(--s-muted); margin: -6px 0 0; }
   .swatches { display: flex; gap: 8px; }
   .swatches button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--s-bg); box-shadow: 0 0 0 1px var(--s-line); cursor: pointer; padding: 0; }
@@ -104,7 +105,8 @@
   .add:disabled { opacity: 0.45; cursor: not-allowed; }
   .fit-guide-button { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--s-ink); font: 500 14px var(--s-font); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
   .fit-guide-button::before { content: ""; width: 16px; height: 10px; flex: none; background: repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 4px) bottom / 100% 5px no-repeat, linear-gradient(currentColor, currentColor) bottom / 100% 1px no-repeat; }
-  .note { font-size: 13px; color: var(--s-muted); padding: 0 22px 22px; }
+  .chart-error { font-size: 13px; color: #b42318; }
+  .note { font-size: 13px; color: var(--s-muted); padding: 0 22px 22px; margin: 0; }
 
   section.how { padding-block: 44px; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
@@ -118,13 +120,60 @@
   footer { border-top: 1px solid var(--line); padding-block: 22px 36px; color: var(--muted); font-size: 14px; }
   footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
 
-  .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: 999px; font-size: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); z-index: 50; }
+  /* Customize panel: slides in from the right, the store stays visible beside it. */
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 100%); z-index: 40; background: var(--panel); color: var(--ink); border-left: 1px solid var(--line); box-shadow: -18px 0 50px rgba(0, 0, 0, 0.18); display: flex; flex-direction: column;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-right: env(safe-area-inset-right, 0px); }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .drawer-head h2 { font: 700 20px/1.2 var(--display); margin: 0; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .drawer-body { overflow-y: auto; padding: 6px 18px 18px; flex: 1; }
+  .drawer details { border-bottom: 1px solid var(--line); padding-block: 4px; }
+  .drawer summary { cursor: pointer; padding: 12px 0; font: 600 16px var(--display); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  .drawer summary::-webkit-details-marker { display: none; }
+  .drawer summary::after { content: "+"; font: 400 20px var(--body); color: var(--muted); }
+  .drawer details[open] summary::after { content: "–"; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; padding-bottom: 14px; }
+  .fields .wide { grid-column: 1 / -1; }
+  .fld { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); min-width: 0; }
+  .fld input[type="text"], .fld input[type="number"], .fld select, .fld textarea { font: 14px var(--body); color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; min-width: 0; }
+  .fld textarea { resize: vertical; min-height: 64px; }
+  .color { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px 4px 4px; background: var(--field); }
+  .color input[type="color"] { width: 34px; height: 30px; border: 0; padding: 0; background: none; cursor: pointer; flex: none; }
+  .color span { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--ink); }
+  .check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--ink); grid-column: 1 / -1; }
+  .hint-text { grid-column: 1 / -1; font-size: 13px; color: var(--muted); margin: 0; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; grid-column: 1 / -1; }
+  .tabs button { font: 500 13px var(--body); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
+  .tabs button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .chart-box { grid-column: 1 / -1; overflow-x: auto; }
+  .chart-box table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .chart-box th { text-align: left; font-weight: 500; color: var(--muted); padding: 4px; white-space: nowrap; }
+  .chart-box td { padding: 3px 4px; }
+  .chart-box input { width: 100%; min-width: 52px; font: 14px var(--body); color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 6px; padding: 6px 7px; }
+  .chart-box .rm { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
+  .small-btn { font: 500 13px var(--body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
+  .err { grid-column: 1 / -1; color: var(--danger); font-size: 13px; margin: 0; }
+  .photo-row { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .photo-row img { width: 46px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+  .line-preview { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; padding: 10px; border-radius: 8px; background: #23262b; }
+  .line-preview span { font: 600 12px var(--body); padding: 5px 10px; border-radius: 999px; }
+  .drawer-foot { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 18px; border-top: 1px solid var(--line); }
+  .drawer-foot .primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .copy-out { width: 100%; min-height: 160px; font: 12px ui-monospace, Menlo, monospace; color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: 999px; font-size: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); z-index: 60; max-width: calc(100% - 32px); text-align: center; }
 
   @media (max-width: 820px) {
     .intro { grid-template-columns: 1fr; gap: 26px; padding-block: 18px 24px; }
     .shop-nav { display: none; }
   }
-  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  /* Wide screens: the page moves over so the whole store stays visible beside the panel.
+     Phones: the panel is a bottom sheet, with the store visible above it. */
+  @media (min-width: 900px) { body.customizing { padding-right: 440px; } }
+  @media (max-width: 899px) {
+    .drawer { top: auto; height: 62vh; height: 62dvh; width: 100%; border-left: 0; border-top: 1px solid var(--line); border-radius: 16px 16px 0 0; box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.22); padding-left: env(safe-area-inset-left, 0px); }
+    body.customizing { padding-bottom: 62vh; }
+  }
 </style>
 </head>
 <body>
@@ -134,7 +183,7 @@
         <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="9" width="26" height="10" rx="2" fill="#f2c230"/><path d="M5 9v4M9 9v6M13 9v4M17 9v6M21 9v4" stroke="#2a2306" stroke-width="1.4"/></svg>
         Fit Guide <span class="pill">Demo</span>
       </div>
-      <div class="units" role="group" aria-label="Units">
+      <div class="seg" role="group" aria-label="Units">
         <span>Units</span>
         <button type="button" data-units="cm" aria-pressed="true">cm</button>
         <button type="button" data-units="in" aria-pressed="false">in</button>
@@ -167,11 +216,11 @@
             <path d="M118 196 L126 292 L152 292 L158 206 Z"/>
             <path d="M202 196 L194 292 L168 292 L162 206 Z"/>
           </g>
-          <path d="M138 94 Q160 108 182 94 L214 104 L230 150 L210 156 L204 134 L204 214 L116 214 L116 134 L110 156 L90 150 L106 104 Z" fill="rgba(244,242,238,0.12)" stroke="#f4f2ee" stroke-width="3" stroke-linejoin="round"/>
-          <path d="M136 90 Q160 106 184 90 L224 102 L244 156 L218 164 L212 138 L212 228 L108 228 L108 138 L102 164 L76 156 L96 102 Z" fill="none" stroke="#f2a65a" stroke-width="3" stroke-dasharray="10 7" stroke-linejoin="round"/>
+          <path id="fig-best" d="M138 94 Q160 108 182 94 L214 104 L230 150 L210 156 L204 134 L204 214 L116 214 L116 134 L110 156 L90 150 L106 104 Z" fill="#f4f2ee" fill-opacity="0.12" stroke="#f4f2ee" stroke-width="3" stroke-linejoin="round"/>
+          <path id="fig-picked" d="M136 90 Q160 106 184 90 L224 102 L244 156 L218 164 L212 138 L212 228 L108 228 L108 138 L102 164 L76 156 L96 102 Z" fill="none" stroke="#f2a65a" stroke-width="3" stroke-dasharray="10 7" stroke-linejoin="round"/>
           <g font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">
-            <rect x="16" y="232" width="92" height="24" rx="12" fill="#f4f2ee"/><text x="62" y="248" text-anchor="middle" fill="#0a1a2a">M · best fit</text>
-            <rect x="170" y="238" width="136" height="24" rx="12" fill="#f2a65a"/><text x="238" y="254" text-anchor="middle" fill="#0a1a2a">XL: +12 cm chest</text>
+            <rect id="fig-best-tag" x="16" y="232" width="92" height="24" rx="12" fill="#f4f2ee"/><text id="fig-best-text" x="62" y="248" text-anchor="middle" fill="#0a1a2a">M · best fit</text>
+            <rect id="fig-picked-tag" x="170" y="238" width="136" height="24" rx="12" fill="#f2a65a"/><text id="fig-picked-text" x="238" y="254" text-anchor="middle" fill="#0a1a2a">XL: +12 cm chest</text>
           </g>
         </svg>
         <div class="cap">The camera fit guide: the solid line is your best size, the dashed line the size you picked.</div>
@@ -185,17 +234,23 @@
         <div class="section-head">
           <div>
             <h2>Sample store</h2>
-            <p>A made-up shop with made-up size charts. Pick a product and use <b>Find your size</b>.</p>
+            <p>A made-up shop with made-up size charts. Pick a product and use <b>Find your size</b>, or make it your own with <b>Customize</b>.</p>
           </div>
-          <div class="styles" role="group" aria-label="Store style">
-            <span>Store style</span>
-            <button type="button" data-preset="minimal" aria-pressed="true">Minimal</button>
-            <button type="button" data-preset="classic" aria-pressed="false">Classic</button>
-            <button type="button" data-preset="bold" aria-pressed="false">Bold</button>
+          <div class="head-tools">
+            <div class="seg" role="group" aria-label="Store style">
+              <span>Style</span>
+              <button type="button" data-preset="minimal" aria-pressed="false">Minimal</button>
+              <button type="button" data-preset="classic" aria-pressed="false">Classic</button>
+              <button type="button" data-preset="bold" aria-pressed="false">Bold</button>
+            </div>
+            <button type="button" class="customize" id="open-customize" aria-expanded="false" aria-controls="drawer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+              Customize
+            </button>
           </div>
         </div>
         <div class="browser">
-          <div class="bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">fernway.example/collections/essentials</div></div>
+          <div class="bar"><div class="dots"><i></i><i></i><i></i></div><div class="url" id="shop-url">fernway.example/collections/essentials</div></div>
           <div class="shop" id="shop">
             <div class="shop-head">
               <div class="shop-name" id="shop-name">FERNWAY</div>
@@ -203,7 +258,7 @@
               <div class="bag" id="bag">Bag (0)</div>
             </div>
             <div class="grid" id="grid"></div>
-            <p class="note">Sample products and size charts are made up for this demo. The style buttons above restyle this store and the size window together, the way a real store's colours, fonts and corners would.</p>
+            <p class="note">Sample products and size charts are made up for this demo. Change anything under Customize: it's remembered in this browser only.</p>
           </div>
         </div>
       </div>
@@ -246,57 +301,117 @@
     </div>
   </footer>
 
+  <aside class="drawer" id="drawer" aria-label="Customize the sample store" hidden>
+    <div class="drawer-head">
+      <h2>Customize</h2>
+      <button type="button" class="icon-btn" id="close-customize" aria-label="Close Customize">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-foot">
+      <button type="button" class="small-btn primary" id="copy-settings">Copy settings</button>
+      <button type="button" class="small-btn" id="reset-all">Reset everything</button>
+    </div>
+  </aside>
+
   <div class="toast" id="toast" role="status" hidden></div>
 
   <script src="./fit-guide.js"></script>
   <script>
     (function () {
-      var STORE_KEY = "fitguide-demo";
-      var products = [
-        {
-          id: "tee", name: "Everyday Tee", price: "€35", meta: "Organic cotton · relaxed fit", tag: "Relaxed fit",
-          colours: [["Ink", "#2b2f36"], ["Sand", "#d8c7a8"], ["Sage", "#9fb59a"]],
-          art: "tee",
-          chart: { type: "top", fit: "relaxed", sizes: [
-            { name: "XS", chest: 100, length: 66 }, { name: "S", chest: 106, length: 68 }, { name: "M", chest: 112, length: 70 },
-            { name: "L", chest: 118, length: 72 }, { name: "XL", chest: 124, length: 74 } ] }
-        },
-        {
-          id: "shirt", name: "Oxford Shirt", price: "€69", meta: "Brushed oxford cotton · regular fit", tag: "Regular fit",
-          colours: [["White", "#f3f3ef"], ["Sky", "#a9c3df"], ["Navy", "#2c3e5c"]],
-          art: "shirt",
-          chart: { type: "top", fit: "regular", sizes: [
-            { name: "S", bodyChest: [88, 94] }, { name: "M", bodyChest: [94, 100] }, { name: "L", bodyChest: [100, 106] },
-            { name: "XL", bodyChest: [106, 112] }, { name: "XXL", bodyChest: [112, 120] } ] }
-        },
-        {
-          id: "leggings", name: "Studio Leggings", price: "€59", meta: "Recycled stretch · high rise", tag: "Second skin",
-          colours: [["Black", "#1e1e20"], ["Plum", "#6a3e5c"], ["Olive", "#6b6d47"]],
-          art: "leggings",
-          chart: { type: "bottom", sizes: [
-            { name: "XS", bodyHips: [82, 88], inseam: 66 }, { name: "S", bodyHips: [88, 94], inseam: 67 }, { name: "M", bodyHips: [94, 100], inseam: 68 },
-            { name: "L", bodyHips: [100, 106], inseam: 69 }, { name: "XL", bodyHips: [106, 112], inseam: 70 } ] }
-        }
-      ];
+      var KEY = "fitguide-demo-v2";
+      var FONTS = {
+        "Inter": "\"Inter\", system-ui, sans-serif",
+        "DM Sans": "\"DM Sans\", system-ui, sans-serif",
+        "Work Sans": "\"Work Sans\", system-ui, sans-serif",
+        "Space Grotesk": "\"Space Grotesk\", system-ui, sans-serif",
+        "Libre Baskerville": "\"Libre Baskerville\", Georgia, serif",
+        "Playfair Display": "\"Playfair Display\", Georgia, serif"
+      };
+      var CORNERS = [["Square", "0px"], ["Soft", "6px"], ["Rounded", "12px"], ["Pill", "999px"]];
+      var TILE_CORNERS = [["Square", "0px"], ["Soft", "8px"], ["Rounded", "16px"], ["Round", "28px"]];
+      var PANEL_CORNERS = [["Square", "2px"], ["Soft", "8px"], ["Rounded", "14px"], ["Round", "24px"]];
+      var CUTS = [["slim", "Slim"], ["regular", "Regular"], ["relaxed", "Relaxed"], ["oversized", "Oversized"]];
 
-      // Three store looks. Each restyles the sample store and passes the same look to the size window.
-      var presets = {
-        minimal: { name: "FERNWAY", store: { "--s-bg": "#ffffff", "--s-ink": "#141414", "--s-muted": "#6b6b6b", "--s-line": "#e6e6e6", "--s-accent": "#141414", "--s-accent-ink": "#ffffff", "--s-radius": "0px", "--s-tile-radius": "0px", "--s-font": "\"Inter\", system-ui, sans-serif", "--s-display": "\"Inter\", system-ui, sans-serif", "--s-tile": "#f2f2f0" },
-          widget: { accent: "#141414", accentText: "#ffffff", radius: "0px", font: "\"Inter\", system-ui, sans-serif", background: "#ffffff", surface: "#f3f3f1" } },
-        classic: { name: "Fernway & Co.", store: { "--s-bg": "#fbf9f4", "--s-ink": "#1f2a24", "--s-muted": "#5f6b62", "--s-line": "#e3ded2", "--s-accent": "#2f4a3a", "--s-accent-ink": "#fbf9f4", "--s-radius": "10px", "--s-tile-radius": "12px", "--s-font": "\"Libre Baskerville\", Georgia, serif", "--s-display": "\"Libre Baskerville\", Georgia, serif", "--s-tile": "#efebe1" },
-          widget: { accent: "#2f4a3a", accentText: "#fbf9f4", radius: "10px", font: "\"Libre Baskerville\", Georgia, serif", background: "#fbf9f4", surface: "#efebe1", text: "#1f2a24", line: "#e3ded2" } },
-        bold: { name: "fernway", store: { "--s-bg": "#ffffff", "--s-ink": "#101322", "--s-muted": "#5a5f73", "--s-line": "#dfe2ee", "--s-accent": "#2b59ff", "--s-accent-ink": "#ffffff", "--s-radius": "999px", "--s-tile-radius": "24px", "--s-font": "\"Space Grotesk\", system-ui, sans-serif", "--s-display": "\"Space Grotesk\", system-ui, sans-serif", "--s-tile": "#eef1ff" },
-          widget: { accent: "#2b59ff", accentText: "#ffffff", radius: "999px", font: "\"Space Grotesk\", system-ui, sans-serif", surface: "#eef1ff", line: "#dfe2ee", text: "#101322" } }
+      // Store looks. Each sets the store; the size window follows the store unless styled separately.
+      var PRESETS = {
+        minimal: { name: "FERNWAY", font: "Inter", headingFont: "Inter", accent: "#141414", accentInk: "#ffffff", bg: "#ffffff", ink: "#141414", tile: "#f2f2f0", radius: "0px", tileRadius: "0px", panelRadius: "2px" },
+        classic: { name: "Fernway & Co.", font: "Libre Baskerville", headingFont: "Libre Baskerville", accent: "#2f4a3a", accentInk: "#fbf9f4", bg: "#fbf9f4", ink: "#1f2a24", tile: "#efebe1", radius: "12px", tileRadius: "16px", panelRadius: "14px" },
+        bold: { name: "fernway", font: "Space Grotesk", headingFont: "Space Grotesk", accent: "#2b59ff", accentInk: "#ffffff", bg: "#ffffff", ink: "#101322", tile: "#eef1ff", radius: "999px", tileRadius: "28px", panelRadius: "24px" }
       };
 
-      var state = load();
-      function load() {
-        var s = { preset: "minimal", units: "cm", picks: {}, bag: 0 };
-        try { var saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); if (saved && typeof saved === "object") { s.preset = presets[saved.preset] ? saved.preset : s.preset; s.units = saved.units === "in" ? "in" : "cm"; } } catch (e) {}
-        products.forEach(function (p) { s.picks[p.id] = { size: "", colour: 0 }; });
-        return s;
+      function defaults() {
+        var p = PRESETS.minimal;
+        return {
+          v: 2,
+          preset: "minimal",
+          units: "cm",
+          store: copy(p),
+          widgetMatch: true,
+          widget: { accent: p.accent, accentText: p.accentInk, background: p.bg, surface: p.tile, text: p.ink, radius: p.radius, panelRadius: p.panelRadius, font: p.font, headingFont: p.headingFont },
+          lines: { best: "#f4f2ee", picked: "#f2a65a", scan: "#8cb4e1" },
+          text: { button: "Find your size", title: "Find your size", intro: "" },
+          products: [
+            { id: "tee", name: "Everyday Tee", price: "€35", meta: "Organic cotton · relaxed fit", tag: "Relaxed fit", art: "tee", style: "garment", photo: "",
+              colours: [["Ink", "#2b2f36"], ["Sand", "#d8c7a8"], ["Sage", "#9fb59a"]],
+              chart: { type: "top", fit: "relaxed", sizes: [{ name: "XS", chest: 100, length: 66 }, { name: "S", chest: 106, length: 68 }, { name: "M", chest: 112, length: 70 }, { name: "L", chest: 118, length: 72 }, { name: "XL", chest: 124, length: 74 }] } },
+            { id: "shirt", name: "Oxford Shirt", price: "€69", meta: "Brushed oxford cotton · regular fit", tag: "Regular fit", art: "shirt", style: "range", photo: "",
+              colours: [["White", "#f3f3ef"], ["Sky", "#a9c3df"], ["Navy", "#2c3e5c"]],
+              chart: { type: "top", fit: "regular", sizes: [{ name: "S", bodyChest: [88, 94] }, { name: "M", bodyChest: [94, 100] }, { name: "L", bodyChest: [100, 106] }, { name: "XL", bodyChest: [106, 112] }, { name: "XXL", bodyChest: [112, 120] }] } },
+            { id: "leggings", name: "Studio Leggings", price: "€59", meta: "Recycled stretch · high rise", tag: "Second skin", art: "leggings", style: "hips", photo: "",
+              colours: [["Black", "#1e1e20"], ["Plum", "#6a3e5c"], ["Olive", "#6b6d47"]],
+              chart: { type: "bottom", sizes: [{ name: "XS", bodyHips: [82, 88], inseam: 66 }, { name: "S", bodyHips: [88, 94], inseam: 67 }, { name: "M", bodyHips: [94, 100], inseam: 68 }, { name: "L", bodyHips: [100, 106], inseam: 69 }, { name: "XL", bodyHips: [106, 112], inseam: 70 }] } }
+          ]
+        };
       }
-      function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify({ preset: state.preset, units: state.units })); } catch (e) {} }
+      function copy(o) { return JSON.parse(JSON.stringify(o)); }
+
+      var S = load();
+      var picks = {}; // per product: chosen size and colour (not saved)
+      var bag = 0;
+      var editing = "tee";
+      S.products.forEach(function (p) { picks[p.id] = { size: "", colour: 0 }; });
+
+      function load() {
+        try {
+          var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+          if (saved && saved.v === 2 && saved.products && saved.products.length === 3) return saved;
+        } catch (e) {}
+        return defaults();
+      }
+      var saveTimer;
+      function save() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(function () {
+          try { localStorage.setItem(KEY, JSON.stringify(S)); }
+          catch (e) { // photos can exceed browser storage: keep the rest
+            try { var lite = copy(S); lite.products.forEach(function (p) { p.photo = ""; }); localStorage.setItem(KEY, JSON.stringify(lite)); } catch (e2) {}
+          }
+        }, 250);
+      }
+
+      // What the size window gets: the store's look unless styled separately, plus line colours and texts.
+      function widgetTheme() {
+        var st = S.store, w = S.widgetMatch ? { accent: st.accent, accentText: st.accentInk, background: st.bg, surface: st.tile, text: st.ink, radius: st.radius, panelRadius: st.panelRadius, font: st.font, headingFont: st.headingFont } : S.widget;
+        return {
+          accent: w.accent, accentText: w.accentText, background: w.background, surface: w.surface, text: w.text,
+          muted: "color-mix(in srgb, " + w.text + " 62%, " + w.background + ")",
+          line: "color-mix(in srgb, " + w.text + " 14%, " + w.background + ")",
+          radius: w.radius, panelRadius: w.panelRadius, font: FONTS[w.font] || FONTS.Inter, headingFont: FONTS[w.headingFont] || FONTS.Inter,
+          guideBest: S.lines.best, guidePicked: S.lines.picked, scanHighlight: S.lines.scan
+        };
+      }
+      function widgetMessages() {
+        var m = {};
+        if (S.text.button.trim()) m["button.findSize"] = S.text.button.trim();
+        if (S.text.title.trim()) m["dialog.title"] = S.text.title.trim();
+        if (S.text.intro.trim()) m["intro.lead"] = S.text.intro.trim();
+        return m;
+      }
+      function optionsFor(p) {
+        return { product: { name: p.name }, chart: p.chart, units: S.units, theme: widgetTheme(), messages: widgetMessages() };
+      }
 
       function art(kind, fill) {
         var stroke = "rgba(0,0,0,0.28)";
@@ -304,69 +419,356 @@
         if (kind === "shirt") return '<svg viewBox="0 0 200 210" aria-hidden="true"><path d="M74 18 L100 34 L126 18 L166 28 L196 176 L176 182 L158 76 L158 196 L42 196 L42 76 L24 182 L4 176 L34 28 Z" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2" stroke-linejoin="round"/><path d="M74 18 L92 50 L100 34 M126 18 L108 50 L100 34" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2" stroke-linejoin="round"/><path d="M100 36 V196" stroke="' + stroke + '" stroke-width="2"/><g fill="' + stroke + '"><circle cx="106" cy="66" r="2.6"/><circle cx="106" cy="98" r="2.6"/><circle cx="106" cy="130" r="2.6"/><circle cx="106" cy="162" r="2.6"/></g></svg>';
         return '<svg viewBox="0 0 200 210" aria-hidden="true"><rect x="52" y="8" width="96" height="22" rx="4" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2"/><path d="M52 30 L148 30 L154 70 L134 202 L110 202 L100 92 L90 202 L66 202 L46 70 Z" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2" stroke-linejoin="round"/><path d="M100 30 V92" stroke="' + stroke + '" stroke-width="1.5"/></svg>';
       }
+      function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]; }); }
+      function el(tag, attrs, html) { var e = document.createElement(tag); for (var k in attrs || {}) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
 
+      // ---------- the store ----------
       var grid = document.getElementById("grid");
+      function renderStore() {
+        var st = S.store, shop = document.getElementById("shop");
+        var vars = { "--s-bg": st.bg, "--s-ink": st.ink, "--s-accent": st.accent, "--s-accent-ink": st.accentInk, "--s-tile": st.tile, "--s-radius": st.radius, "--s-tile-radius": st.tileRadius, "--s-font": FONTS[st.font], "--s-display": FONTS[st.headingFont] };
+        Object.keys(vars).forEach(function (k) { shop.style.setProperty(k, vars[k]); });
+        document.getElementById("shop-name").textContent = st.name || "Your store";
+        var slug = (st.name || "your-store").toLowerCase().replace(/[^a-z0-9]+/g, "") || "yourstore";
+        document.getElementById("shop-url").textContent = slug + ".example/collections/essentials";
+        document.querySelectorAll("[data-preset]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.preset === S.preset)); });
+        document.querySelectorAll("[data-units]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.units === S.units)); });
+        // The intro sketch uses the same line colours as the camera.
+        document.getElementById("fig-best").setAttribute("stroke", S.lines.best);
+        document.getElementById("fig-best").setAttribute("fill", S.lines.best);
+        document.getElementById("fig-picked").setAttribute("stroke", S.lines.picked);
+        document.getElementById("fig-best-tag").setAttribute("fill", S.lines.best);
+        document.getElementById("fig-picked-tag").setAttribute("fill", S.lines.picked);
+        document.getElementById("fig-best-text").setAttribute("fill", readable(S.lines.best));
+        document.getElementById("fig-picked-text").setAttribute("fill", readable(S.lines.picked));
+        renderProducts();
+      }
+      function readable(hex) {
+        var m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return "#0a1a2a";
+        var n = parseInt(m[1], 16), lum = (0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+        return lum > 0.55 ? "#0a1a2a" : "#ffffff";
+      }
+
       function renderProducts() {
         grid.innerHTML = "";
-        products.forEach(function (p) {
-          var pick = state.picks[p.id];
-          var el = document.createElement("article");
-          el.className = "product";
-          el.dataset.product = p.id;
-          el.innerHTML =
-            '<div class="tile"><span class="tag">' + p.tag + '</span>' + art(p.art, p.colours[pick.colour][1]) + '</div>' +
-            '<div class="p-head"><h3 class="p-name">' + p.name + '</h3><span class="p-price">' + p.price + '</span></div>' +
-            '<p class="p-meta">' + p.meta + ' · ' + p.colours[pick.colour][0] + '</p>' +
-            '<div class="swatches" role="group" aria-label="Colour"></div>' +
+        S.products.forEach(function (p) {
+          var pick = picks[p.id];
+          if (pick.colour >= p.colours.length) pick.colour = 0;
+          if (pick.size && !p.chart.sizes.some(function (s) { return s.name === pick.size; })) pick.size = "";
+          var problem = window.FitGuide && FitGuide.checkChart(p.chart);
+          var card = el("article", { "class": "product", "data-product": p.id });
+          var image = p.photo ? '<img src="' + esc(p.photo) + '" alt="' + esc(p.name) + '" />' : art(p.art, p.colours[pick.colour][1]);
+          card.innerHTML =
+            '<div class="tile">' + (p.tag ? '<span class="tag">' + esc(p.tag) + '</span>' : "") + image + '</div>' +
+            '<div class="p-head"><h3 class="p-name">' + esc(p.name) + '</h3><span class="p-price">' + esc(p.price) + '</span></div>' +
+            '<p class="p-meta">' + esc(p.meta) + (p.photo ? "" : " · " + esc(p.colours[pick.colour][0])) + '</p>' +
+            (p.photo ? "" : '<div class="swatches" role="group" aria-label="Colour"></div>') +
             '<div class="sizes" role="group" aria-label="Size"></div>' +
-            '<div class="row"><button type="button" class="add">Add to bag</button><span class="slot"></span></div>';
-          var sw = el.querySelector(".swatches");
-          p.colours.forEach(function (c, i) {
-            var b = document.createElement("button");
-            b.type = "button"; b.style.background = c[1]; b.setAttribute("aria-label", c[0]); b.setAttribute("aria-pressed", String(i === pick.colour));
+            '<div class="row"><button type="button" class="add"></button><span class="slot"></span></div>';
+          var sw = card.querySelector(".swatches");
+          if (sw) p.colours.forEach(function (c, i) {
+            var b = el("button", { type: "button", "aria-label": c[0], "aria-pressed": String(i === pick.colour) });
+            b.style.background = c[1];
             b.onclick = function () { pick.colour = i; renderProducts(); };
             sw.appendChild(b);
           });
-          var sz = el.querySelector(".sizes");
+          var sz = card.querySelector(".sizes");
           p.chart.sizes.forEach(function (s) {
-            var b = document.createElement("button");
-            b.type = "button"; b.textContent = s.name; b.setAttribute("aria-pressed", String(s.name === pick.size));
+            var b = el("button", { type: "button", "aria-pressed": String(s.name === pick.size) });
+            b.textContent = s.name;
             b.onclick = function () { pick.size = s.name; renderProducts(); };
             sz.appendChild(b);
           });
-          var add = el.querySelector(".add");
+          var add = card.querySelector(".add");
           add.disabled = !pick.size;
           add.textContent = pick.size ? "Add to bag · " + pick.size : "Select a size";
-          add.onclick = function () { state.bag += 1; document.getElementById("bag").textContent = "Bag (" + state.bag + ")"; toast(p.name + ", size " + pick.size + ", added to the bag (demo)"); };
-          grid.appendChild(el);
-          // The size window gets this product's chart, the current pick and the store's look each time it opens.
-          FitGuide.button(el.querySelector(".slot"), function () {
-            return {
-              product: { name: p.name },
-              chart: p.chart,
-              selectedSize: pick.size,
-              units: state.units,
-              theme: presets[state.preset].widget,
-              onChoose: function (size) { pick.size = size; renderProducts(); toast("Size " + size + " selected for " + p.name); }
-            };
-          });
+          add.onclick = function () { bag += 1; document.getElementById("bag").textContent = "Bag (" + bag + ")"; toast(p.name + ", size " + pick.size + ", added to the bag (demo)"); };
+          var slot = card.querySelector(".slot");
+          if (problem) {
+            slot.appendChild(el("span", { "class": "chart-error" }, "Size chart needs fixing: " + esc(problem)));
+          } else if (window.FitGuide) {
+            // The size window gets this product's chart, the current pick and the store's look each time it opens.
+            FitGuide.button(slot, function () {
+              var o = optionsFor(p);
+              o.selectedSize = pick.size;
+              o.onChoose = function (size) { pick.size = size; renderProducts(); toast("Size " + size + " selected for " + p.name); };
+              return o;
+            }, S.text.button.trim() || "Find your size");
+          }
+          grid.appendChild(card);
         });
       }
 
-      function applyPreset() {
-        var pr = presets[state.preset];
-        var shop = document.getElementById("shop");
-        Object.keys(pr.store).forEach(function (k) { shop.style.setProperty(k, pr.store[k]); });
-        document.getElementById("shop-name").textContent = pr.name;
-        document.querySelectorAll("[data-preset]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.preset === state.preset)); });
+      // ---------- the Customize panel ----------
+      var body = document.getElementById("drawer-body");
+      function section(title, open, build) {
+        var d = el("details", open ? { open: "" } : {});
+        d.appendChild(el("summary", {}, esc(title)));
+        var f = el("div", { "class": "fields" });
+        build(f);
+        d.appendChild(f);
+        body.appendChild(d);
+        return d;
       }
+      function textField(f, label, value, onInput, wide, id) {
+        var w = el("label", { "class": "fld" + (wide ? " wide" : "") }, esc(label));
+        var i = el("input", { type: "text", id: id });
+        i.value = value;
+        i.oninput = function () { onInput(i.value); };
+        w.appendChild(i); f.appendChild(w); return i;
+      }
+      function areaField(f, label, value, placeholder, onInput, id) {
+        var w = el("label", { "class": "fld wide" }, esc(label));
+        var i = el("textarea", { id: id, placeholder: placeholder });
+        i.value = value;
+        i.oninput = function () { onInput(i.value); };
+        w.appendChild(i); f.appendChild(w); return i;
+      }
+      function colorField(f, label, value, onInput, id) {
+        var w = el("label", { "class": "fld" }, esc(label));
+        var box = el("span", { "class": "color" });
+        var i = el("input", { type: "color", id: id });
+        i.value = value;
+        var code = el("span", {}, esc(value));
+        i.oninput = function () { code.textContent = i.value; onInput(i.value); };
+        box.appendChild(i); box.appendChild(code); w.appendChild(box); f.appendChild(w); return i;
+      }
+      function selectField(f, label, options, value, onChange, id) {
+        var w = el("label", { "class": "fld" }, esc(label));
+        var s = el("select", { id: id });
+        options.forEach(function (o) { var op = el("option", { value: o[1] }, esc(o[0])); if (o[1] === value) op.selected = true; s.appendChild(op); });
+        s.onchange = function () { onChange(s.value); };
+        w.appendChild(s); f.appendChild(w); return s;
+      }
+      var fontOptions = Object.keys(FONTS).map(function (n) { return [n, n]; });
+      function changed(alsoPanel) { S.preset = ""; save(); renderStore(); if (alsoPanel) renderPanel(); }
+
+      function renderPanel() {
+        var open = {};
+        body.querySelectorAll("details").forEach(function (d, i) { open[i] = d.open; });
+        var scroll = body.scrollTop;
+        body.innerHTML = "";
+        var st = S.store;
+
+        section("Store", open[0] !== undefined ? open[0] : true, function (f) {
+          textField(f, "Store name", st.name, function (v) { st.name = v; changed(); }, true, "c-store-name");
+          selectField(f, "Body font", fontOptions, st.font, function (v) { st.font = v; changed(); }, "c-store-font");
+          selectField(f, "Heading font", fontOptions, st.headingFont, function (v) { st.headingFont = v; changed(); }, "c-store-heading");
+          colorField(f, "Background", st.bg, function (v) { st.bg = v; changed(); }, "c-store-bg");
+          colorField(f, "Text", st.ink, function (v) { st.ink = v; changed(); }, "c-store-ink");
+          colorField(f, "Buttons", st.accent, function (v) { st.accent = v; changed(); }, "c-store-accent");
+          colorField(f, "Button text", st.accentInk, function (v) { st.accentInk = v; changed(); }, "c-store-accent-ink");
+          colorField(f, "Image background", st.tile, function (v) { st.tile = v; changed(); }, "c-store-tile");
+          selectField(f, "Button corners", CORNERS, st.radius, function (v) { st.radius = v; changed(); }, "c-store-radius");
+          selectField(f, "Image corners", TILE_CORNERS, st.tileRadius, function (v) { st.tileRadius = v; changed(); }, "c-store-tile-radius");
+          selectField(f, "Window corners", PANEL_CORNERS, st.panelRadius, function (v) { st.panelRadius = v; changed(); }, "c-store-panel-radius");
+        });
+
+        section("Products", !!open[1], function (f) {
+          var tabs = el("div", { "class": "tabs", role: "group", "aria-label": "Product to edit" });
+          S.products.forEach(function (p) {
+            var b = el("button", { type: "button", "aria-pressed": String(p.id === editing) });
+            b.textContent = p.name || p.id;
+            b.onclick = function () { editing = p.id; renderPanel(); };
+            tabs.appendChild(b);
+          });
+          f.appendChild(tabs);
+          var p = S.products.filter(function (x) { return x.id === editing; })[0];
+          textField(f, "Name", p.name, function (v) { p.name = v; changed(); }, false, "c-p-name");
+          textField(f, "Price", p.price, function (v) { p.price = v; changed(); }, false, "c-p-price");
+          textField(f, "Description", p.meta, function (v) { p.meta = v; changed(); }, true, "c-p-meta");
+          textField(f, "Label on the image (leave empty for none)", p.tag, function (v) { p.tag = v; changed(); }, true, "c-p-tag");
+
+          var photo = el("div", { "class": "photo-row" });
+          if (p.photo) photo.appendChild(el("img", { src: p.photo, alt: "" }));
+          var up = el("label", { "class": "small-btn" }, p.photo ? "Change photo" : "Upload a product photo");
+          var file = el("input", { type: "file", accept: "image/*", hidden: "", id: "c-p-photo" });
+          file.onchange = function () { if (file.files[0]) readPhoto(file.files[0], function (url) { p.photo = url; changed(true); }); };
+          up.appendChild(file); photo.appendChild(up);
+          if (p.photo) { var rm = el("button", { type: "button", "class": "small-btn" }, "Use the drawing"); rm.onclick = function () { p.photo = ""; changed(true); }; photo.appendChild(rm); }
+          f.appendChild(photo);
+
+          f.appendChild(el("p", { "class": "hint-text" }, chartHint(p)));
+          if (p.chart.type === "top") selectField(f, "Cut (how it's meant to fit)", CUTS.map(function (c) { return [c[1], c[0]]; }), p.chart.fit, function (v) { p.chart.fit = v; changed(); }, "c-p-fit");
+          var box = el("div", { "class": "chart-box" });
+          box.appendChild(chartTable(p));
+          f.appendChild(box);
+          var addSize = el("button", { type: "button", "class": "small-btn" }, "Add a size");
+          addSize.onclick = function () { addRow(p); changed(true); };
+          f.appendChild(addSize);
+          var problem = window.FitGuide && FitGuide.checkChart(p.chart);
+          if (problem) f.appendChild(el("p", { "class": "err", role: "alert" }, "This chart can't be used yet: " + esc(problem)));
+        });
+
+        section("Size window", !!open[2], function (f) {
+          var lab = el("label", { "class": "check" });
+          var cb = el("input", { type: "checkbox", id: "c-w-match" });
+          cb.checked = S.widgetMatch;
+          cb.onchange = function () {
+            if (!cb.checked) { S.widget = { accent: S.store.accent, accentText: S.store.accentInk, background: S.store.bg, surface: S.store.tile, text: S.store.ink, radius: S.store.radius, panelRadius: S.store.panelRadius, font: S.store.font, headingFont: S.store.headingFont }; }
+            S.widgetMatch = cb.checked; changed(true);
+          };
+          lab.appendChild(cb); lab.appendChild(document.createTextNode("Match the store")); f.appendChild(lab);
+          if (S.widgetMatch) { f.appendChild(el("p", { "class": "hint-text" }, "The size window uses the store's fonts, colours and corners. Untick to style it separately.")); return; }
+          var w = S.widget;
+          colorField(f, "Background", w.background, function (v) { w.background = v; changed(); }, "c-w-bg");
+          colorField(f, "Panels", w.surface, function (v) { w.surface = v; changed(); }, "c-w-surface");
+          colorField(f, "Text", w.text, function (v) { w.text = v; changed(); }, "c-w-text");
+          colorField(f, "Buttons", w.accent, function (v) { w.accent = v; changed(); }, "c-w-accent");
+          colorField(f, "Button text", w.accentText, function (v) { w.accentText = v; changed(); }, "c-w-accent-text");
+          selectField(f, "Button corners", CORNERS, w.radius, function (v) { w.radius = v; changed(); }, "c-w-radius");
+          selectField(f, "Window corners", PANEL_CORNERS, w.panelRadius, function (v) { w.panelRadius = v; changed(); }, "c-w-panel");
+          selectField(f, "Body font", fontOptions, w.font, function (v) { w.font = v; changed(); }, "c-w-font");
+          selectField(f, "Heading font", fontOptions, w.headingFont, function (v) { w.headingFont = v; changed(); }, "c-w-heading");
+        });
+
+        section("Camera lines", !!open[3], function (f) {
+          colorField(f, "Best size line", S.lines.best, function (v) { S.lines.best = v; changed(); renderLinePreview(); }, "c-l-best");
+          colorField(f, "Your pick line", S.lines.picked, function (v) { S.lines.picked = v; changed(); renderLinePreview(); }, "c-l-picked");
+          colorField(f, "Body highlight while measuring", S.lines.scan, function (v) { S.lines.scan = v; changed(); renderLinePreview(); }, "c-l-scan");
+          var pv = el("div", { "class": "line-preview", id: "line-preview" });
+          f.appendChild(pv);
+          f.appendChild(el("p", { "class": "hint-text" }, "Tag text switches between dark and light by itself, so it stays readable on any line colour."));
+        });
+
+        section("Texts", !!open[4], function (f) {
+          textField(f, "Button on the product", S.text.button, function (v) { S.text.button = v; changed(); }, false, "c-t-button");
+          textField(f, "Window title", S.text.title, function (v) { S.text.title = v; changed(); }, false, "c-t-title");
+          areaField(f, "Opening sentence (leave empty for the default)", S.text.intro, "Enter your measurements to find your size…", function (v) { S.text.intro = v; changed(); }, "c-t-intro");
+          f.appendChild(el("p", { "class": "hint-text" }, "Every other text in the window can be changed or translated the same way."));
+        });
+
+        body.scrollTop = scroll;
+        renderLinePreview();
+      }
+      function renderLinePreview() {
+        var pv = document.getElementById("line-preview"); if (!pv) return;
+        pv.innerHTML = "";
+        [["M · best fit", S.lines.best, S.lines.best, true], ["XL: +12 cm chest", S.lines.picked, S.lines.picked, true], ["Measuring", S.lines.scan, S.lines.scan, false]].forEach(function (x) {
+          var s = el("span", {}, esc(x[0]));
+          s.style.background = x[1]; s.style.color = readable(x[1]);
+          pv.appendChild(s);
+        });
+      }
+
+      function chartHint(p) {
+        if (p.style === "garment") return "Size chart: the garment's own chest (all the way round) and length, in cm.";
+        if (p.style === "range") return "Size chart: the chest each size is made for, from–to, in cm.";
+        return "Size chart: the hips each size is made for, from–to, and the inseam, in cm.";
+      }
+      function columns(p) {
+        if (p.style === "garment") return [["Size", "name"], ["Chest", "chest"], ["Length", "length"]];
+        if (p.style === "range") return [["Size", "name"], ["Chest from", "bodyChest.0"], ["Chest to", "bodyChest.1"]];
+        return [["Size", "name"], ["Hips from", "bodyHips.0"], ["Hips to", "bodyHips.1"], ["Inseam", "inseam"]];
+      }
+      function getAt(o, path) { var k = path.split("."); return k.length === 1 ? o[k[0]] : (o[k[0]] || [])[Number(k[1])]; }
+      function setAt(o, path, v) { var k = path.split("."); if (k.length === 1) o[k[0]] = v; else { o[k[0]] = o[k[0]] || [0, 0]; o[k[0]][Number(k[1])] = v; } }
+      function chartTable(p) {
+        var cols = columns(p);
+        var t = el("table");
+        var head = "<thead><tr>" + cols.map(function (c) { return "<th scope=\"col\">" + c[0] + "</th>"; }).join("") + "<th></th></tr></thead>";
+        t.innerHTML = head;
+        var tb = el("tbody");
+        p.chart.sizes.forEach(function (s, r) {
+          var tr = el("tr");
+          cols.forEach(function (c, ci) {
+            var td = el("td");
+            var i = el("input", { type: c[1] === "name" ? "text" : "number", inputmode: c[1] === "name" ? "text" : "decimal", step: "any", id: "c-chart-" + r + "-" + ci, "aria-label": c[0] + ", row " + (r + 1) });
+            i.value = getAt(s, c[1]) == null ? "" : getAt(s, c[1]);
+            i.oninput = function () {
+              setAt(s, c[1], c[1] === "name" ? i.value : (i.value === "" ? undefined : Number(i.value)));
+              changed();
+              var box = body.querySelector(".err"); var problem = FitGuide.checkChart(p.chart);
+              if (problem && !box) { box = el("p", { "class": "err", role: "alert" }); body.querySelector(".chart-box").parentNode.appendChild(box); }
+              if (box) { if (problem) box.textContent = "This chart can't be used yet: " + problem; else box.remove(); }
+            };
+            td.appendChild(i); tr.appendChild(td);
+          });
+          var td = el("td");
+          var rm = el("button", { type: "button", "class": "rm", "aria-label": "Remove size " + (s.name || r + 1) }, "×");
+          rm.disabled = p.chart.sizes.length <= 1;
+          rm.onclick = function () { p.chart.sizes.splice(r, 1); changed(true); };
+          td.appendChild(rm); tr.appendChild(td);
+          tb.appendChild(tr);
+        });
+        t.appendChild(tb);
+        return t;
+      }
+      function addRow(p) {
+        var sizes = p.chart.sizes, last = sizes[sizes.length - 1] || {};
+        var next = copy(last);
+        next.name = nextName(last.name || "M", sizes);
+        if (p.style === "garment") { next.chest = (last.chest || 100) + 6; next.length = (last.length || 70) + 2; }
+        else if (p.style === "range") { var c = last.bodyChest || [94, 100]; next.bodyChest = [c[1], c[1] + (c[1] - c[0] || 6)]; }
+        else { var h = last.bodyHips || [94, 100]; next.bodyHips = [h[1], h[1] + (h[1] - h[0] || 6)]; next.inseam = (last.inseam || 68) + 1; }
+        sizes.push(next);
+      }
+      function nextName(name, sizes) {
+        var order = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"];
+        var i = order.indexOf(name);
+        var cand = i >= 0 && i < order.length - 1 ? order[i + 1] : name + "+";
+        while (sizes.some(function (s) { return s.name === cand; })) cand += "+";
+        return cand;
+      }
+      function readPhoto(file, done) {
+        var img = new Image();
+        var url = URL.createObjectURL(file);
+        img.onload = function () {
+          var scale = Math.min(1, 900 / Math.max(img.width, img.height));
+          var c = document.createElement("canvas"); c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          done(c.toDataURL("image/jpeg", 0.85));
+        };
+        img.onerror = function () { URL.revokeObjectURL(url); toast("Couldn't read that image. Try a JPG or PNG."); };
+        img.src = url;
+      }
+
+      // ---------- panel open/close, presets, units, copy, reset ----------
+      var drawer = document.getElementById("drawer"), opener = document.getElementById("open-customize");
+      function setDrawer(open) {
+        drawer.hidden = !open; opener.setAttribute("aria-expanded", String(open));
+        document.body.classList.toggle("customizing", open);
+        if (open) {
+          renderPanel(); document.getElementById("close-customize").focus({ preventScroll: true });
+          if (window.matchMedia("(max-width: 899px)").matches) document.getElementById("shop").scrollIntoView({ block: "start" });
+        } else opener.focus();
+      }
+      opener.onclick = function () { setDrawer(drawer.hidden); };
+      document.getElementById("close-customize").onclick = function () { setDrawer(false); };
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !drawer.hidden && !document.querySelector("[data-fit-guide]")) setDrawer(false); });
+
       document.querySelectorAll("[data-preset]").forEach(function (b) {
-        b.onclick = function () { state.preset = b.dataset.preset; save(); applyPreset(); };
+        b.onclick = function () {
+          var p = PRESETS[b.dataset.preset];
+          S.store = copy(p); S.preset = b.dataset.preset; save(); renderStore();
+          if (!drawer.hidden) renderPanel();
+        };
       });
-      function applyUnits() { document.querySelectorAll("[data-units]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.units === state.units)); }); }
       document.querySelectorAll("[data-units]").forEach(function (b) {
-        b.onclick = function () { state.units = b.dataset.units; save(); applyUnits(); };
+        b.onclick = function () { S.units = b.dataset.units; save(); renderStore(); };
       });
+
+      document.getElementById("copy-settings").onclick = function () {
+        var p = S.products.filter(function (x) { return x.id === editing; })[0];
+        var json = JSON.stringify(optionsFor(p), null, 2);
+        var done = function () { toast("Settings for " + p.name + " copied"); };
+        var fallback = function () {
+          var existing = body.querySelector(".copy-out");
+          if (!existing) { existing = el("textarea", { "class": "copy-out", readonly: "", "aria-label": "Settings" }); body.prepend(existing); }
+          existing.value = json; existing.focus(); existing.select(); body.scrollTop = 0;
+          toast("Select and copy the settings shown at the top");
+        };
+        try { navigator.clipboard.writeText(json).then(done, fallback); } catch (e) { fallback(); }
+      };
+      var resetArmed = false, resetBtn = document.getElementById("reset-all");
+      resetBtn.onclick = function () {
+        if (!resetArmed) { resetArmed = true; resetBtn.textContent = "Click again to reset"; setTimeout(function () { resetArmed = false; resetBtn.textContent = "Reset everything"; }, 3000); return; }
+        resetArmed = false; resetBtn.textContent = "Reset everything";
+        S = defaults(); try { localStorage.removeItem(KEY); } catch (e) {}
+        S.products.forEach(function (p) { picks[p.id] = { size: "", colour: 0 }; });
+        renderStore(); renderPanel(); toast("Back to the original demo");
+      };
 
       var toastTimer;
       function toast(msg) {
@@ -379,14 +781,14 @@
       (function () {
         var tape = document.getElementById("tape");
         var n = Math.ceil(window.screen.width / 100) + 2;
-        for (var i = 1; i < n; i++) { var s = document.createElement("span"); s.style.left = (i * 100) + "px"; s.textContent = i * 10; tape.appendChild(s); }
+        for (var i = 1; i < n; i++) { var s = el("span"); s.style.left = (i * 100) + "px"; s.textContent = i * 10; tape.appendChild(s); }
       })();
 
       if (!window.FitGuide) {
         grid.innerHTML = '<p style="padding:22px">The Fit Guide script did not load. Reload the page to try again.</p>';
         return;
       }
-      applyPreset(); applyUnits(); renderProducts();
+      renderStore();
     })();
   </script>
 </body>
